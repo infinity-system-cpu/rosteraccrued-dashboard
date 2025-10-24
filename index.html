@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Nóminas y Folios</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="planos.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+</head>
+<body>
+    <!-- Login Section -->
+    <header id="login-section">
+        <div class="login-container">
+            <h2>Acceso al Sistema</h2>
+            <form id="login-form" onsubmit="return false;">
+                <div class="form-row">
+                    <label>Usuario:</label>
+                    <input type="text" name="usuario" placeholder="Nombre de usuario" required>
+                </div>
+                <div class="form-row">
+                    <label>Contraseña:</label>
+                    <input type="password" name="password" placeholder="Contraseña" required>
+                </div>
+                <button type="submit">Iniciar Sesión</button>
+            </form>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div id="main-header" style="display:none;">
+        <header>
+            <div class="logo-container">
+                <img id="company-logo" src="assets/logo.png" alt="Logo Empresa" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiM5OTkiLz48dGV4dCB4PSIxMDAiIHk9IjEwMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj5Mb2dvPC90ZXh0Pjwvc3ZnPg=='">
+            </div>
+            <h1>Sistema de Gestión de Folios y Nóminas</h1>
+            <nav>
+                <button onclick="showSection('home')" class="nav-btn">Inicio</button>
+                <button onclick="showSection('add')" class="nav-btn">Agregar Folio</button>
+                <button onclick="showSection('filter')" class="nav-btn">Filtrar Datos</button>
+                <button onclick="showSection('summary')" class="nav-btn">Resumen Técnicos</button>
+                <button onclick="showSection('carga-ffth')" class="nav-btn">Carga FFTH</button>
+                <button onclick="showSection('carga-cobre')" class="nav-btn">Carga COBRE</button>
+                <button onclick="showSection('nomina')" class="nav-btn">Nómina Técnico</button>
+                <button onclick="showSection('supervisor')" class="nav-btn">Nómina Supervisor</button>
+                <button onclick="showSection('acumulado')" class="nav-btn">Acumulado</button>
+                <button onclick="showSection('planos')" class="nav-btn">Visualizar Planos</button>
+                <button onclick="showSection('users')" class="nav-btn">Usuarios</button>
+                <button onclick="showSection('total-nominas')" class="nav-btn">Total General Nóminas</button>
+                <button onclick="showSection('precios')" class="nav-btn">Configurar Precios</button>
+            </nav>
+        </header>
+    </div>
+
+    <main style="display:none;">
+        <!-- Sección Inicio -->
+        <section id="home" class="section active">
+            <h2>Bienvenido al Sistema de Gestión de Folios y Nóminas</h2>
+            <p>Usa el menú superior para navegar por las diferentes funcionalidades.</p>
+            <div class="stats">
+                <div class="stat-box">
+                    <h3>Total Folios</h3>
+                    <span id="total-folios">0</span>
+                </div>
+                <div class="stat-box">
+                    <h3>Técnicos Activos</h3>
+                    <span id="total-tecnicos">0</span>
+                </div>
+                <div class="stat-box">
+                    <h3>Folios Hoy</h3>
+                    <span id="folios-hoy">0</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección Agregar Folio -->
+        <section id="add" class="section">
+            <h2>Agregar Folio</h2>
+            <form id="folio-form">
+                <div class="form-row">
+                    <label>Tipo:</label>
+                    <select name="tipo" required>
+                        <option value="">Seleccionar</option>
+                        <option value="FIBRA">FIBRA</option>
+                        <option value="COBRE">COBRE</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Cope:</label>
+                    <select name="cope" required>
+                        <option value="">Seleccionar</option>
+                        <option value="TROJES">TROJES</option>
+                        <option value="AGU">AGU</option>
+                    </select>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Teléfono (10 dígitos):</label>
+                    <input type="text" name="telefono" maxlength="10" pattern="\d{10}" required>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Folio/OS (9 dígitos):</label>
+                    <input type="text" name="folio" maxlength="9" pattern="\d{9}" required>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Tarea:</label>
+                    <input type="text" name="tarea" required>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Distrito:</label>
+                    <input type="text" name="distrito" required>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Técnico:</label>
+                    <select name="tecnico" required>
+                        <option value="">Seleccionar</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Fecha y Hora:</label>
+                    <input type="datetime-local" name="fecha" required>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Plantilla:</label>
+                    <select name="plantilla" required>
+                        <option value="OK">OK</option>
+                        <option value="X">X</option>
+                    </select>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Encuesta:</label>
+                    <select name="encuesta" required>
+                        <option value="OK">OK</option>
+                        <option value="X">X</option>
+                    </select>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Instalación:</label>
+                    <select name="instalacion" required>
+                        <option value="AEREA">AEREA</option>
+                        <option value="SUBTERRANEA">SUBTERRANEA</option>
+                    </select>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Metraje (5-250 mts):</label>
+                    <input type="number" name="metraje" min="5" max="250" step="1" required>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Ventanas:</label>
+                    <input type="number" name="ventanas" min="0" step="1" value="0">
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Radiales:</label>
+                    <input type="number" name="radiales" min="0" step="1" value="0">
+                </div>
+                <div class="form-row">
+                    <label>Folio pendiente de liquidar:</label>
+                    <select name="pendiente" required>
+                        <option value="no">No</option>
+                        <option value="si">Sí</option>
+                    </select>
+                </div>
+                <div class="form-row pendiente-campos" style="display:none;">
+                    <label>Teléfono pendiente (9 dígitos):</label>
+                    <input type="text" name="telefono_pendiente" maxlength="9" pattern="\d{9}" required>
+                </div>
+                <div class="form-row pendiente-campos" style="display:none;">
+                    <label>Comentarios pendiente:</label>
+                    <textarea name="comentarios_pendiente" rows="2"></textarea>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Alfanumérico:</label>
+                    <input type="text" name="alfanumerico" maxlength="20">
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Comentarios:</label>
+                    <textarea name="comentarios" rows="3"></textarea>
+                </div>
+                <button type="submit">Guardar Folio</button>
+                <button type="button" onclick="addMultipleFolios()">Agregar Masivamente</button>
+            </form>
+        </section>
+
+        <!-- Sección Filtrar Datos -->
+        <section id="filter" class="section">
+            <h2>Filtrar Datos</h2>
+            <form id="filter-form">
+                <div class="form-row">
+                    <label>Técnico:</label>
+                    <select name="filtro-tecnico">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Fecha Desde:</label>
+                    <input type="date" name="fecha-desde">
+                </div>
+                <div class="form-row">
+                    <label>Fecha Hasta:</label>
+                    <input type="date" name="fecha-hasta">
+                </div>
+                <div class="form-row">
+                    <label>Folio/OS:</label>
+                    <input type="text" name="filtro-folio" placeholder="Buscar por folio">
+                </div>
+                <button type="submit">Aplicar Filtro</button>
+                <button type="button" onclick="printFilteredData()">Imprimir Resultados</button>
+            </form>
+            <div id="filter-results" class="results-table">
+            </div>
+        </section>
+
+        <!-- Sección Resumen Técnicos -->
+        <section id="summary" class="section">
+            <h2>Resumen por Técnico</h2>
+            <form id="summary-filter">
+                <div class="form-row">
+                    <label>Desde:</label>
+                    <input type="date" name="summary-desde" required>
+                </div>
+                <div class="form-row">
+                    <label>Hasta:</label>
+                    <input type="date" name="summary-hasta" required>
+                </div>
+                <button type="submit">Generar Resumen</button>
+                <button type="button" onclick="printSummary()">Imprimir Resumen</button>
+            </form>
+            <div id="summary-chart-container">
+                <canvas id="summary-chart"></canvas>
+            </div>
+            <div id="summary-table" class="results-table">
+            </div>
+        </section>
+
+        <!-- Sección Carga FFTH -->
+        <section id="carga-ffth" class="section">
+            <h2>Carga FFTH (Exportar a Excel)</h2>
+            <button onclick="exportToExcel('ffth')">Exportar a Excel</button>
+            <div id="ffth-table" class="results-table">
+            </div>
+        </section>
+
+        <!-- Sección Carga COBRE -->
+        <section id="carga-cobre" class="section">
+            <h2>Carga COBRE (Exportar a Excel)</h2>
+            <button onclick="exportToExcel('cobre')">Exportar a Excel</button>
+            <div id="cobre-table" class="results-table">
+            </div>
+        </section>
+
+        <!-- Sección Nómina Técnico -->
+        <section id="nomina" class="section">
+            <h2>Recibo de Pago a Técnico</h2>
+            <form id="nomina-form" onsubmit="return false;">
+                <div class="form-row">
+                    <label>Técnico:</label>
+                    <select name="nomina-tecnico" required>
+                        <option value="">Seleccionar</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Fecha Desde:</label>
+                    <input type="date" name="nomina-desde" required>
+                </div>
+                <div class="form-row">
+                    <label>Fecha Hasta:</label>
+                    <input type="date" name="nomina-hasta" required>
+                </div>
+                <button type="submit">Generar Recibo</button>
+                <button type="button" onclick="printNomina()">Imprimir Recibo</button>
+            </form>
+            <div id="nomina-receipt" class="receipt">
+            </div>
+        </section>
+
+        <!-- Sección Nómina Supervisor -->
+        <section id="supervisor" class="section">
+            <h2>Recibo de Pago a Supervisor</h2>
+            <form id="supervisor-form" onsubmit="return false;">
+                <div class="form-row">
+                    <label>Supervisor:</label>
+                    <select name="supervisor-nombre" required>
+                        <option value="">Seleccionar</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Fecha Desde:</label>
+                    <input type="date" name="supervisor-desde" required>
+                </div>
+                <div class="form-row">
+                    <label>Fecha Hasta:</label>
+                    <input type="date" name="supervisor-hasta" required>
+                </div>
+                <button type="submit">Generar Recibo</button>
+                <button type="button" onclick="printSupervisor()">Imprimir Recibo</button>
+            </form>
+            <div id="supervisor-receipt" class="receipt">
+            </div>
+        </section>
+
+        <!-- Sección Acumulado -->
+        <section id="acumulado" class="section">
+            <h2>Acumulado de Folios por Técnico</h2>
+            <form id="acumulado-form">
+                <div class="form-row">
+                    <label>Desde:</label>
+                    <input type="date" name="acumulado-desde" required>
+                </div>
+                <div class="form-row">
+                    <label>Hasta:</label>
+                    <input type="date" name="acumulado-hasta" required>
+                </div>
+                <button type="submit">Generar Acumulado</button>
+                <button type="button" onclick="printAcumulado()">Imprimir Acumulado</button>
+            </form>
+            <div id="acumulado-table" class="results-table">
+            </div>
+        </section>
+
+        <!-- Sección Visualizar Planos -->
+        <section id="planos" class="section">
+            <h2>Visualizador de Planos</h2>
+            
+            <div class="form-row">
+                <label>Seleccionar Carpeta:</label>
+                <select id="carpeta-select" onchange="cargarArchivosCarpeta(this.value)">
+                    <option value="">Seleccionar carpeta</option>
+                    <option value="planos">Planos Principales</option>
+                    <option value="planos/proyecto1">Proyecto 1</option>
+                    <option value="planos/proyecto2">Proyecto 2</option>
+                    <!-- Agrega más opciones según tus carpetas -->
+                </select>
+            </div>
+
+            <div class="form-row">
+                <label>Buscar archivo:</label>
+                <input type="text" id="buscar-archivo" placeholder="Buscar por nombre..." onkeyup="filtrarArchivos()">
+            </div>
+
+            <div id="visor-planos">
+                <div id="lista-archivos" class="file-list">
+                    <p>Selecciona una carpeta para ver los archivos</p>
+                </div>
+                <div id="preview-container" class="preview-area">
+                    <p>Selecciona un archivo para previsualizarlo</p>
+                </div>
+            </div>
+
+            <div class="planos-actions">
+                <button onclick="descargarArchivoActual()" disabled id="btn-descargar">Descargar Archivo</button>
+                <button onclick="abrirArchivoNuevaPestana()" disabled id="btn-abrir">Abrir en Nueva Pestaña</button>
+            </div>
+        </section>
+
+        <!-- Sección Usuarios -->
+        <section id="users" class="section">
+            <h2>Gestión de Usuarios</h2>
+            <form id="user-form">
+                <div class="form-row">
+                    <label>Nombre:</label>
+                    <input type="text" name="user-name" required>
+                </div>
+                <div class="form-row">
+                    <label>Rol:</label>
+                    <select name="user-role" required>
+                        <option value="tecnico">Técnico</option>
+                        <option value="supervisor">Supervisor</option>
+                        <option value="gerente">Gerente</option>
+                        <option value="administrativo">Administrativo</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Contraseña:</label>
+                    <input type="password" name="user-password" required>
+                </div>
+                <button type="submit">Agregar Usuario</button>
+            </form>
+            <div id="users-list" class="results-table">
+            </div>
+        </section>
+
+        <!-- Sección Total General Nóminas -->
+        <section id="total-nominas" class="section">
+            <h2>Total General Nóminas</h2>
+            <form id="total-nominas-form">
+                <div class="form-row">
+                    <label>Desde:</label>
+                    <input type="date" name="total-desde" required>
+                </div>
+                <div class="form-row">
+                    <label>Hasta:</label>
+                    <input type="date" name="total-hasta" required>
+                </div>
+                <button type="submit">Generar Total</button>
+                <button type="button" onclick="printTotalNominas()">Imprimir Total</button>
+            </form>
+            <div id="total-nominas-table" class="results-table">
+            </div>
+        </section>
+
+        <!-- Sección Configuración de Precios -->
+        <section id="precios" class="section">
+            <h2>Configuración de Precios (Solo Admin/Gerente)</h2>
+            <form id="precios-form">
+                <div class="form-row">
+                    <label>Fibra Aérea:</label>
+                    <input type="number" name="fibra_aerea" value="330" min="0" step="10">
+                </div>
+                <div class="form-row">
+                    <label>Fibra Subterránea:</label>
+                    <input type="number" name="fibra_sub" value="350" min="0" step="10">
+                </div>
+                <div class="form-row">
+                    <label>Fibra Aérea (10+):</label>
+                    <input type="number" name="fibra_aerea_10" value="350" min="0" step="10">
+                </div>
+                <div class="form-row">
+                    <label>Fibra Subterránea (10+):</label>
+                    <input type="number" name="fibra_sub_10" value="370" min="0" step="10">
+                </div>
+                <div class="form-row">
+                    <label>Cobre Aérea:</label>
+                    <input type="number" name="cobre_aerea" value="300" min="0" step="10">
+                </div>
+                <div class="form-row">
+                    <label>Cobre Subterránea:</label>
+                    <input type="number" name="cobre_sub" value="320" min="0" step="10">
+                </div>
+                <div class="form-row">
+                    <label>Cobre Aérea (10+):</label>
+                    <input type="number" name="cobre_aerea_10" value="320" min="0" step="10">
+                </div>
+                <div class="form-row">
+                    <label>Cobre Subterránea (10+):</label>
+                    <input type="number" name="cobre_sub_10" value="340" min="0" step="10">
+                </div>
+                <button type="submit">Guardar Precios</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Sistema de Gestión de Folios y Nóminas. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="firebase-config.js"></script>
+    <script src="script.js"></script>
+    <script src="planos.js"></script>
+</body>
+</html>
