@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Folios</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="planos.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+</head>
+<body>
+    <!-- Login Section -->
+    <header id="login-section">
+        <div class="login-container">
+            <div class="login-header">
+                <h2>📋 Sistema de Gestión</h2>
+                <p>Ingresa tus credenciales para continuar</p>
+            </div>
+            <form id="login-form" onsubmit="return false;">
+                <div class="form-group">
+                    <label>👤 Usuario:</label>
+                    <input type="text" name="usuario" placeholder="Nombre de usuario (login)" required>
+                </div>
+                <div class="form-group">
+                    <label>🔒 Contraseña:</label>
+                    <input type="password" name="password" placeholder="Contraseña" required>
+                </div>
+                <button type="submit" class="login-btn">Iniciar Sesión</button>
+            </form>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div id="main-header" style="display:none;">
+        <header class="main-header">
+            <div class="header-content">
+                <button class="hamburger-btn" onclick="toggleMenu()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <h1 class="header-title">Bienvenido</h1>
+                <div class="user-info">
+                    <span id="current-user-name"></span>
+                    <button onclick="logout()" class="logout-btn">Cerrar Sesión</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Menú Hamburguesa -->
+        <nav id="main-nav" class="main-nav">
+            <div class="nav-header">
+                <h3>Menú Principal</h3>
+                <button class="close-menu" onclick="toggleMenu()">×</button>
+            </div>
+            <div class="nav-items">
+                <button onclick="showSection('home')" class="nav-item">
+                    <span>🏠</span> Inicio
+                </button>
+                <button onclick="showSection('add')" class="nav-item">
+                    <span>📝</span> Agregar Folio
+                </button>
+                <button onclick="showSection('base')" class="nav-item">
+                    <span>📋</span> Base de Folios
+                </button>
+                <button onclick="showSection('filter')" class="nav-item">
+                    <span>🔍</span> Filtrar Datos
+                </button>
+                <button onclick="showSection('planos')" class="nav-item">
+                    <span>📐</span> Visualizar Planos
+                </button>
+                <button onclick="showSection('summary')" class="nav-item">
+                    <span>📊</span> Resumen Técnicos
+                </button>
+                <button onclick="showSection('nomina')" class="nav-item">
+                    <span>💰</span> Nómina Técnico
+                </button>
+                <button onclick="showSection('supervisor')" class="nav-item">
+                    <span>👨‍💼</span> Nómina Supervisor
+                </button>
+                <button onclick="showSection('acumulado')" class="nav-item">
+                    <span>📈</span> Acumulado
+                </button>
+                <button onclick="showSection('total-nominas')" class="nav-item">
+                    <span>🏢</span> Total General Nóminas
+                </button>
+                <button onclick="showSection('carga-ffth')" class="nav-item">
+                    <span>🌐</span> Carga FFTH
+                </button>
+                <button onclick="showSection('carga-cobre')" class="nav-item">
+                    <span>🔌</span> Carga COBRE
+                </button>
+                <button onclick="showSection('users')" class="nav-item">
+                    <span>👥</span> Gestión de Usuarios
+                </button>
+                <button onclick="showSection('precios')" class="nav-item">
+                    <span>💲</span>  Editar Precios
+                </button>
+            </div>
+        </nav>
+
+        <!-- Overlay para cerrar menú -->
+        <div id="nav-overlay" class="nav-overlay" onclick="toggleMenu()"></div>
+    </div>
+
+    <main style="display:none;">
+        <!-- Sección Inicio -->
+        <section id="home" class="section active">
+            <div class="welcome-container">
+                <div class="welcome-header">
+                    <h1>Sistema de Gestión de Folios</h1>
+                    <p class="welcome-subtitle">Sistema integral para la gestión de folios</p>
+                </div>
+                
+                <div class="dashboard-cards">
+                    <div class="dashboard-card primary">
+                        <div class="card-icon">📋</div>
+                        <div class="card-content">
+                            <h3>Total Folios</h3>
+                            <span id="total-folios" class="card-value">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card success">
+                        <div class="card-icon">👷</div>
+                        <div class="card-content">
+                            <h3>Técnicos Activos</h3>
+                            <span id="total-tecnicos" class="card-value">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card warning">
+                        <div class="card-icon">📅</div>
+                        <div class="card-content">
+                            <h3>Folios Hoy</h3>
+                            <span id="folios-hoy" class="card-value">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card info">
+                        <div class="card-icon">💼</div>
+                        <div class="card-content">
+                            <h3>Mi Rol</h3>
+                            <span id="user-role" class="card-value">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <h3>Acciones Rápidas</h3>
+                    <div class="action-buttons">
+                        <button onclick="showSection('add')" class="action-btn">
+                            <span>➕</span> Agregar Folio
+                        </button>
+                        <button onclick="showSection('filter')" class="action-btn">
+                            <span>🔍</span> Filtrar Datos
+                        </button>
+                        <button onclick="showSection('planos')" class="action-btn">
+                            <span>📐</span> Ver Planos
+                        </button>
+                    </div>
+                </div>
+
+                <div class="recent-activity">
+                    <h3>Actividad Reciente</h3>
+                    <div id="recent-folios" class="activity-list">
+                        <p>Cargando actividad reciente...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección Agregar Folio -->
+        <section id="add" class="section">
+            <div class="section-header">
+                <h2>Agregar Folio</h2>
+                <p>Seleccione el modo de ingreso de datos</p>
+            </div>
+            <div class="form-container">
+        <!-- Modo de ingreso + Botón Folio Pendiente -->
+            <div class="form-row" style="flex-wrap: wrap; gap: 10px; align-items: flex-start;">
+                <div style="flex: 1; min-width: 250px;">
+                    <label>Modo de ingreso:</label>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 5px;">
+                        <button type="button" class="btn-secondary" onclick="cambiarModoIngreso('manual')" id="btn-modo-manual">📝 Manual</button>
+                        <button type="button" class="btn-secondary" onclick="cambiarModoIngreso('automatico')" id="btn-modo-automatico">🤖 Automático</button>
+                    </div>
+                </div>
+                <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column;">
+                    <label style="opacity: 0;">Acción</label>
+                        <button type="button" class="btn-secondary" onclick="abrirModalFolioPendiente()" style="margin-top: 5px; align-self: flex-start;">
+                        📄 Folio Pendiente de Liquidar
+                        </button>
+                    </div>
+                </div>
+
+            <!-- Formulario Manual -->
+            <form id="folio-form" class="form-container" style="display:block;">
+                <!-- Campos existentes -->
+                <div class="form-row">
+                    <label>Tipo:</label>
+                    <select name="tipo" required>
+                        <option value="">Seleccionar</option>
+                        <option value="FIBRA">FIBRA</option>
+                        <option value="COBRE">COBRE</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Cope:</label>
+                    <select name="cope" required>
+                        <option value="">Seleccionar</option>
+                        <option value="TROJES">TROJES</option>
+                        <option value="AGU">AGU</option>
+                    </select>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Teléfono (10 dígitos):</label>
+                    <input type="text" name="telefono" maxlength="10" pattern="\d{10}" required>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Folio/OS (9 dígitos):</label>
+                    <input type="text" name="folio" maxlength="9" pattern="\d{9}" required>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Tarea:</label>
+                    <input type="text" name="tarea" required>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Distrito:</label>
+                    <input type="text" name="distrito" required>
+                </div>
+                <div class="form-row campo-normal tech-only-field">
+                    <label>Técnico:</label>
+                    <select name="tecnico" required>
+                        <option value="">Seleccionar</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Fecha y Hora:</label>
+                    <input type="datetime-local" name="fecha" required>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Plantilla:</label>
+                    <select name="plantilla" required>
+                        <option value="OK">OK</option>
+                        <option value="X">X</option>
+                    </select>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Encuesta:</label>
+                    <select name="encuesta" required>
+                        <option value="OK">OK</option>
+                        <option value="X">X</option>
+                    </select>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Instalación:</label>
+                    <select name="instalacion" required>
+                        <option value="AEREA">AEREA</option>
+                        <option value="SUBTERRANEA">SUBTERRANEA</option>
+                    </select>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Metraje (5-250 mts):</label>
+                    <input type="number" name="metraje" min="5" max="250" step="1" required>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Ventanas:</label>
+                    <input type="number" name="ventanas" min="0" step="1" value="0">
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Radiales:</label>
+                    <input type="number" name="radiales" min="0" step="1" value="0">
+                </div>
+                <div class="form-row">
+                    <label>Folio pendiente de liquidar:</label>
+                    <select name="pendiente" required>
+                        <option value="no">No</option>
+                        <option value="si">Sí</option>
+                    </select>
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Alfanumérico:</label>
+                    <input type="text" name="alfanumerico" maxlength="20">
+                </div>
+                <div class="form-row campo-normal">
+                    <label>Comentarios:</label>
+                    <textarea name="comentarios" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Guardar Folio</button>
+                </div>
+            </form>
+
+            <!-- Formulario Automático -->
+            <div id="modo-automatico" class="form-container" style="display:none;">
+                <div class="form-row">
+                    <label>Pegue la plantilla:</label>
+                    <textarea id="plantilla-whatsapp" rows="22" placeholder="Pegue aquí la plantilla completa..." style="width:100%; font-family:monospace;"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-primary" onclick="procesarPlantilla()">Procesar Plantilla</button>
+                    <button type="button" class="btn-secondary" onclick="cambiarModoIngreso('manual')">Volver a Manual</button>
+                </div>
+            </div>
+
+            <!-- Modal para Folio Pendiente -->
+            <div id="modal-pendiente" class="modal" style="display:none;">
+                <div class="modal-content">
+                    <span class="close-modal" onclick="cerrarModalPendiente()">&times;</span>
+                    <h3>Folio Pendiente de Liquidar</h3>
+                    <div class="form-row">
+                        <label>Tipo:</label>
+                        <select id="pendiente-tipo" required>
+                            <option value="FIBRA">FIBRA</option>
+                            <option value="COBRE">COBRE</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label>Cope:</label>
+                        <select id="pendiente-cope" required>
+                            <option value="TROJES">TROJES</option>
+                            <option value="AGU">AGU</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label>Fecha y Hora:</label>
+                        <input type="datetime-local" id="pendiente-fecha" required>
+                    </div>
+                    <div class="form-row">
+                        <label>Teléfono pendiente (9 dígitos):</label>
+                        <input type="text" id="pendiente-telefono" maxlength="9" pattern="\d{9}" required>
+                    </div>
+                    <div class="form-row">
+                        <label>Comentarios pendiente:</label>
+                        <textarea id="pendiente-comentarios" rows="2"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-primary" onclick="guardarPendienteDesdeModal()">Guardar</button>
+                        <button type="button" class="btn-secondary" onclick="cerrarModalPendiente()">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección Base de Folios -->
+        <section id="base" class="section">
+            <div class="section-header">
+                <h2>Base de Folios</h2>
+                <p>Gestión y edición de plantillas y encuestas por técnico</p>
+            </div>
+    
+            <form id="base-filter-form" class="form-container">
+                <div class="form-row">
+                    <label>Técnico:</label>
+                    <select name="base-tecnico" id="base-tecnico" required>
+                        <option value="">Seleccionar técnico</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Fecha Desde:</label>
+                    <input type="date" name="base-desde" id="base-desde" required>
+                </div>
+                <div class="form-row">
+                    <label>Fecha Hasta:</label>
+                    <input type="date" name="base-hasta" id="base-hasta" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Aplicar Filtro</button>
+                    <button type="button" onclick="clearBaseFilter()" class="btn-secondary">Limpiar</button>
+                </div>
+            </form>
+
+            <div class="edit-controls" id="base-edit-controls" style="display: none; margin: 1rem 0; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                <h4>Editar Folio Seleccionado</h4>
+                <div class="form-row">
+                    <label>Plantilla:</label>
+                    <select id="edit-plantilla">
+                        <option value="OK">OK</option>
+                        <option value="X">X</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Encuesta:</label>
+                    <select id="edit-encuesta">
+                        <option value="OK">OK</option>
+                        <option value="X">X</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="saveFolioChanges()" class="btn-primary">💾 Guardar Cambios</button>
+                    <button type="button" onclick="cancelEdit()" class="btn-secondary">Cancelar</button>
+                </div>
+            </div>
+
+            <div id="base-results" class="results-table">
+                <p>Selecciona un técnico y rango de fechas para ver los folios</p>
+            </div>
+        </section>
+
+        <!-- Sección Filtrar Datos -->
+        <section id="filter" class="section">
+            <div class="section-header">
+                <h2>Filtrar Datos</h2>
+                <p>Filtre los folios según sus criterios de búsqueda</p>
+            </div>
+            <form id="filter-form" class="form-container">
+                <div class="form-row">
+                    <label>Técnico:</label>
+                    <select name="filtro-tecnico">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Fecha Desde:</label>
+                    <input type="date" name="fecha-desde">
+                </div>
+                <div class="form-row">
+                    <label>Fecha Hasta:</label>
+                    <input type="date" name="fecha-hasta">
+                </div>
+                <div class="form-row">
+                    <label>Folio/OS:</label>
+                    <input type="text" name="filtro-folio" placeholder="Buscar por folio">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Aplicar Filtro</button>
+                    <button type="button" onclick="printFilteredData()" class="btn-secondary">Imprimir Resultados</button>
+                </div>
+            </form>
+            <div id="filter-results" class="results-table">
+            </div>
+        </section>
+
+        <!-- Sección Resumen Técnicos -->
+        <section id="summary" class="section">
+            <div class="section-header">
+                <h2>Resumen por Técnico</h2>
+                <p>Resumen de folios liquidados por técnico</p>
+            </div>
+            <form id="summary-filter" class="form-container">
+                <div class="form-row">
+                    <label>Desde:</label>
+                    <input type="date" name="summary-desde" required>
+                </div>
+                <div class="form-row">
+                    <label>Hasta:</label>
+                    <input type="date" name="summary-hasta" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Generar Resumen</button>
+                    <button type="button" onclick="printSummary()" class="btn-secondary">Imprimir Resumen</button>
+                </div>
+            </form>
+            <div id="summary-chart-container">
+                <canvas id="summary-chart"></canvas>
+            </div>
+            <div id="summary-table" class="results-table">
+            </div>
+        </section>
+
+        <!-- Sección Carga FFTH -->
+        <section id="carga-ffth" class="section">
+            <div class="section-header">
+                <h2>Carga FFTH</h2>
+                <p>Exportar datos FFTH a Excel</p>
+            </div>
+            <div class="form-container">
+                <button onclick="exportToExcel('ffth')" class="btn-primary">Exportar a Excel</button>
+            </div>
+            <div id="ffth-table" class="results-table">
+            </div>
+        </section>
+
+        <!-- Sección Carga COBRE -->
+        <section id="carga-cobre" class="section">
+            <div class="section-header">
+                <h2>Carga COBRE</h2>
+                <p>Exportar datos COBRE a Excel</p>
+            </div>
+            <div class="form-container">
+                <button onclick="exportToExcel('cobre')" class="btn-primary">Exportar a Excel</button>
+            </div>
+            <div id="cobre-table" class="results-table">
+            </div>
+        </section>
+
+        <!-- Sección Nómina Técnico -->
+        <section id="nomina" class="section">
+            <div class="section-header">
+                <h2>Recibo de Pago a Técnico</h2>
+                <p>Generar recibo de nómina para técnico</p>
+            </div>
+            <form id="nomina-form" class="form-container">
+                <div class="form-row">
+                    <label>Técnico:</label>
+                    <select name="nomina-tecnico" required>
+                        <option value="">Seleccionar</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Fecha Desde:</label>
+                    <input type="date" name="nomina-desde" required>
+                </div>
+                <div class="form-row">
+                    <label>Fecha Hasta:</label>
+                    <input type="date" name="nomina-hasta" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Generar Recibo</button>
+                    <button type="button" onclick="printNomina()" class="btn-secondary">Imprimir Recibo</button>
+                </div>
+            </form>
+            <div id="nomina-receipt" class="receipt">
+            </div>
+        </section>
+
+        <!-- Sección Nómina Supervisor -->
+        <section id="supervisor" class="section">
+            <div class="section-header">
+                <h2>Recibo de Pago a Supervisor</h2>
+                <p>Generar recibo de nómina para supervisor</p>
+            </div>
+            <form id="supervisor-form" class="form-container">
+                <div class="form-row">
+                    <label>Supervisor:</label>
+                    <select name="supervisor-nombre" required>
+                        <option value="">Seleccionar</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Fecha Desde:</label>
+                    <input type="date" name="supervisor-desde" required>
+                </div>
+                <div class="form-row">
+                    <label>Fecha Hasta:</label>
+                    <input type="date" name="supervisor-hasta" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Generar Recibo</button>
+                    <button type="button" onclick="printSupervisor()" class="btn-secondary">Imprimir Recibo</button>
+                </div>
+            </form>
+            <div id="supervisor-receipt" class="receipt">
+            </div>
+        </section>
+
+        <!-- Sección Acumulado -->
+        <section id="acumulado" class="section">
+            <div class="section-header">
+                <h2>Acumulado de Folios por Técnico</h2>
+                <p>Acumulado de folios realizados por técnico</p>
+            </div>
+            <form id="acumulado-form" class="form-container">
+                <div class="form-row">
+                    <label>Desde:</label>
+                    <input type="date" name="acumulado-desde" required>
+                </div>
+                <div class="form-row">
+                    <label>Hasta:</label>
+                    <input type="date" name="acumulado-hasta" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Generar Acumulado</button>
+                    <button type="button" onclick="printAcumulado()" class="btn-secondary">Imprimir Acumulado</button>
+                </div>
+            </form>
+            <div id="acumulado-table" class="results-table">
+            </div>
+        </section>
+
+        <!-- Sección Visualizar Planos -->
+        <section id="planos" class="section">
+            <div class="section-header">
+                <h2>Visualizador de Planos</h2>
+                <p>Visualice y descargue los planos disponibles</p>
+            </div>
+            <div class="form-container">
+                <div class="form-row">
+                    <label>Seleccionar Carpeta:</label>
+                    <select id="carpeta-select" onchange="cargarArchivosCarpeta(this.value)">
+                        <option value="">Seleccionar carpeta</option>
+                        <option value="planos">Planos Principales</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <label>Buscar archivo:</label>
+                    <input type="text" id="buscar-archivo" placeholder="Buscar por nombre..." onkeyup="filtrarArchivos()">
+                </div>
+            </div>
+
+            <div id="visor-planos">
+                <div id="lista-archivos" class="file-list">
+                    <p>Selecciona una carpeta para ver los archivos</p>
+                </div>
+                <div id="preview-container" class="preview-area">
+                    <p>Selecciona un archivo para previsualizarlo</p>
+                </div>
+            </div>
+
+            <div class="planos-actions">
+                <button onclick="descargarArchivoActual()" disabled id="btn-descargar" class="btn-secondary">Descargar Archivo</button>
+                <button onclick="abrirArchivoNuevaPestana()" disabled id="btn-abrir" class="btn-secondary">Abrir en Nueva Pestaña</button>
+            </div>
+        </section>
+
+        <!-- Sección Usuarios -->
+        <section id="users" class="section">
+            <div class="section-header">
+                <h2>Gestión de Usuarios</h2>
+                <p>Administre los usuarios del sistema</p>
+            </div>
+            <form id="user-form" class="form-container">
+                <div class="form-row">
+                    <label>Usuario (login):</label>
+                    <input type="text" name="user-usuario" required placeholder="ej: tecnico1">
+                </div>
+                <div class="form-row">
+                    <label>Nombre Completo:</label>
+                    <input type="text" name="user-name" required placeholder="ej: Juan Pérez">
+                </div>
+                <div class="form-row">
+                    <label>Rol:</label>
+                    <select name="user-role" required>
+                        <option value="tecnico">Técnico</option>
+                        <option value="supervisor">Supervisor</option>
+                        <option value="gerente">Gerente</option>
+                        <option value="administrativo">Administrativo</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Contraseña:</label>
+                    <input type="password" name="user-password" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Agregar Usuario</button>
+                </div>
+            </form>
+            <div id="users-list" class="results-table">
+            </div>
+        </section>
+
+        <!-- Sección Total General Nóminas -->
+        <section id="total-nominas" class="section">
+            <div class="section-header">
+                <h2>Total General Nóminas</h2>
+                <p>Resumen general de todas las nóminas</p>
+            </div>
+            <form id="total-nominas-form" class="form-container">
+                <div class="form-row">
+                    <label>Desde:</label>
+                    <input type="date" name="total-desde" required>
+                </div>
+                <div class="form-row">
+                    <label>Hasta:</label>
+                    <input type="date" name="total-hasta" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Generar Total</button>
+                    <button type="button" onclick="printTotalNominas()" class="btn-secondary">Imprimir Total</button>
+                </div>
+            </form>
+            <div id="total-nominas-table" class="results-table">
+            </div>
+        </section>
+
+        <!-- Sección Configuración de Precios -->
+        <section id="precios" class="section">
+            <div class="section-header">
+                <h2>Configuración de Precios</h2>
+                <p>Configure los precios de los servicios</p>
+            </div>
+            <form id="precios-form" class="form-container">
+                <div class="form-row">
+                    <label>Fibra Aérea:</label>
+                    <input type="number" name="fibra_aerea" value="330" min="0" step="10">
+                </div>
+                <div class="form-row">
+                    <label>Fibra Subterránea:</label>
+                    <input type="number" name="fibra_sub" value="350" min="0" step="10">
+                </div>
+                <div class="form-row">
+                    <label>Fibra Aérea (10+):</label>
+                    <input type="number" name="fibra_aerea_10" value="350" min="0" step="10">
+                </div>
+                <div class="form-row">
+                    <label>Fibra Subterránea (10+):</label>
+                    <input type="number" name="fibra_sub_10" value="370" min="0" step="10">
+                </div>
+                <div class="form-row">
+                    <label>Cobre Aérea:</label>
+                    <input type="number" name="cobre_aerea" value="300" min="0" step="10">
+                </div>
+                <div class="form-row">
+                    <label>Cobre Subterránea:</label>
+                    <input type="number" name="cobre_sub" value="320" min="0" step="10">
+                </div>
+                <div class="form-row">
+                    <label>Cobre Aérea (10+):</label>
+                    <input type="number" name="cobre_aerea_10" value="320" min="0" step="10">
+                </div>
+                <div class="form-row">
+                    <label>Cobre Subterránea (10+):</label>
+                    <input type="number" name="cobre_sub_10" value="340" min="0" step="10">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Guardar Precios</button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+<!-- Modal de Edición de Folio -->
+<div id="edit-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeEditModal()">&times;</span>
+        <h2>Editar Folio</h2>
+        <form id="edit-folio-form" class="form-container">
+            <!-- Los mismos campos que en "Agregar Folio", pero editables -->
+            <div class="form-row">
+                <label>Tipo:</label>
+                <select name="tipo" required>
+                    <option value="FIBRA">FIBRA</option>
+                    <option value="COBRE">COBRE</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label>Cope:</label>
+                <select name="cope" required>
+                    <option value="TROJES">TROJES</option>
+                    <option value="AGU">AGU</option>
+                </select>
+            </div>
+            <div class="form-row campo-normal">
+                <label>Teléfono (10 dígitos):</label>
+                <input type="text" name="telefono" maxlength="10" pattern="\d{10}" required>
+            </div>
+            <div class="form-row campo-normal">
+                <label>Folio/OS (9 dígitos):</label>
+                <input type="text" name="folio" maxlength="9" pattern="\d{9}" required>
+            </div>
+            <div class="form-row campo-normal">
+                <label>Tarea:</label>
+                <input type="text" name="tarea" required>
+            </div>
+            <div class="form-row campo-normal">
+                <label>Distrito:</label>
+                <input type="text" name="distrito" required>
+            </div>
+            <div class="form-row campo-normal tech-only-field">
+                <label>Técnico:</label>
+                <select name="tecnico" required>
+                    <option value="">Seleccionar</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label>Fecha y Hora:</label>
+                <input type="datetime-local" name="fecha" required>
+            </div>
+            <div class="form-row campo-plantilla-encuesta">
+                <label>Plantilla:</label>
+                <select name="plantilla" required>
+                    <option value="OK">OK</option>
+                    <option value="X">X</option>
+                </select>
+            </div>
+            <div class="form-row campo-plantilla-encuesta">
+                <label>Encuesta:</label>
+                <select name="encuesta" required>
+                    <option value="OK">OK</option>
+                    <option value="X">X</option>
+                </select>
+            </div>
+            <div class="form-row campo-normal">
+                <label>Instalación:</label>
+                <select name="instalacion" required>
+                    <option value="AEREA">AEREA</option>
+                    <option value="SUBTERRANEA">SUBTERRANEA</option>
+                </select>
+            </div>
+            <div class="form-row campo-normal">
+                <label>Metraje (5-250 mts):</label>
+                <input type="number" name="metraje" min="5" max="250" step="1" required>
+            </div>
+            <div class="form-row campo-normal">
+                <label>Ventanas:</label>
+                <input type="number" name="ventanas" min="0" step="1" value="0">
+            </div>
+            <div class="form-row campo-normal">
+                <label>Radiales:</label>
+                <input type="number" name="radiales" min="0" step="1" value="0">
+            </div>
+            <div class="form-row">
+                <label>Folio pendiente de liquidar:</label>
+                <select name="pendiente" required>
+                    <option value="no">No</option>
+                    <option value="si">Sí</option>
+                </select>
+            </div>
+            <div class="form-row pendiente-campos" style="display:none;">
+                <label>Teléfono pendiente (9 dígitos):</label>
+                <input type="text" name="telefono_pendiente" maxlength="9" pattern="\d{9}" required>
+            </div>
+            <div class="form-row pendiente-campos" style="display:none;">
+                <label>Comentarios pendiente:</label>
+                <textarea name="comentarios_pendiente" rows="2"></textarea>
+            </div>
+            <div class="form-row campo-normal">
+                <label>Alfanumérico:</label>
+                <input type="text" name="alfanumerico" maxlength="20">
+            </div>
+            <div class="form-row campo-normal">
+                <label>Comentarios:</label>
+                <textarea name="comentarios" rows="3"></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Guardar Cambios</button>
+                <button type="button" onclick="closeEditModal()" class="btn-secondary">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Folio Pendiente de Liquidar -->
+<div id="modal-folio-pendiente" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close-modal" onclick="cerrarModalFolioPendiente()">&times;</span>
+        <h3>📄 Folio Pendiente de Liquidar</h3>
+        <div class="form-row">
+            <label>Tipo:</label>
+            <select id="fp-tipo" required>
+                <option value="FIBRA">FIBRA</option>
+                <option value="COBRE">COBRE</option>
+            </select>
+        </div>
+        <div class="form-row">
+            <label>Cope:</label>
+            <select id="fp-cope" required>
+                <option value="TROJES">TROJES</option>
+                <option value="AGU">AGU</option>
+            </select>
+        </div>
+        <div class="form-row">
+            <label>Fecha y Hora:</label>
+            <input type="datetime-local" id="fp-fecha" required>
+        </div>
+        <div class="form-actions">
+            <button type="button" class="btn-primary" onclick="guardarFolioPendiente()">Guardar Folio Pendiente</button>
+            <button type="button" class="btn-secondary" onclick="cerrarModalFolioPendiente()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+    <footer>
+        <p>&copy; 2025 Sistema de Gestión de Folios y Nóminas. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="firebase-config.js"></script>
+    <script src="script.js"></script>
+    <script src="planos.js"></script>
+</body>
+</html>
