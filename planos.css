@@ -1,0 +1,266 @@
+/* ====================================
+   VISUALIZADOR DE PLANOS - ESTILOS PREMIUM
+   ==================================== */
+
+/* Layout de la sección de planos */
+#visor-planos .row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -0.75rem;
+}
+
+#visor-planos .col-md-4 {
+    flex: 0 0 33.333%;
+    max-width: 33.333%;
+    padding: 0 0.75rem;
+}
+
+#visor-planos .col-md-8 {
+    flex: 0 0 66.667%;
+    max-width: 66.667%;
+    padding: 0 0.75rem;
+}
+
+/* Lista de archivos */
+.file-list {
+    max-height: 500px;
+    overflow-y: auto;
+    border-radius: var(--radius);
+    background: var(--dark);
+    border: 1px solid var(--dark-border);
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--dark-border);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.file-item:last-child {
+    border-bottom: none;
+}
+
+.file-item:hover {
+    background: rgba(59, 130, 246, 0.1);
+    transform: translateX(3px);
+}
+
+.file-item.selected {
+    background: rgba(59, 130, 246, 0.2);
+    border-left: 4px solid var(--secondary);
+}
+
+.file-item.selected::before {
+    content: '';
+    position: absolute;
+    right: 1rem;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--secondary);
+}
+
+.file-icon {
+    font-size: 1.25rem;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.file-info {
+    flex: 1;
+    min-width: 0; /* Para evitar que el texto se salga */
+}
+
+.file-name {
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.25rem;
+}
+
+.file-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.file-size, .file-date {
+    font-size: 0.75rem;
+}
+
+/* Área de vista previa */
+.preview-area {
+    background: var(--dark);
+    border: 1px solid var(--dark-border);
+    border-radius: var(--radius);
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+}
+
+.preview-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--dark-border);
+    background: var(--dark-card);
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.preview-header h5 {
+    margin: 0;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.preview-content {
+    flex: 1;
+    padding: 1.5rem;
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.preview-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--dark-border);
+    background: var(--dark-card);
+    border-radius: 0 0 var(--radius) var(--radius);
+    font-size: 0.875rem;
+}
+
+/* Placeholder para vista previa */
+.preview-placeholder {
+    text-align: center;
+    max-width: 400px;
+}
+
+.preview-placeholder .placeholder-icon {
+    font-size: 4rem;
+    color: var(--text-light);
+    margin-bottom: 1rem;
+}
+
+/* Información del archivo */
+.file-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.info-label {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-value {
+    font-size: 1rem;
+    color: var(--text);
+    font-weight: 600;
+    word-break: break-all;
+}
+
+/* Botones de acción */
+.planos-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+}
+
+.planos-actions .btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Animaciones */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Spinner de carga */
+.spinner-border {
+    width: 2rem;
+    height: 2rem;
+    border-width: 0.2em;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    #visor-planos .col-md-4,
+    #visor-planos .col-md-8 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .file-info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .preview-content iframe {
+        height: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    .planos-actions {
+        flex-direction: column;
+    }
+    
+    .planos-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .preview-content iframe {
+        height: 350px;
+    }
+}
+
+/* Scrollbar personalizado para la lista de archivos */
+.file-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.file-list::-webkit-scrollbar-track {
+    background: var(--dark);
+}
+
+.file-list::-webkit-scrollbar-thumb {
+    background: var(--dark-border);
+    border-radius: 3px;
+}
+
+.file-list::-webkit-scrollbar-thumb:hover {
+    background: var(--text-light);
+}

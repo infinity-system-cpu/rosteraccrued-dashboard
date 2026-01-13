@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1e3a8a">
+    <meta name="description" content="Sistema profesional de gestión de folios">
+    <title>Nomitron</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="planos.css">
+
+    <!-- Iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
+    <!-- SheetJS para Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+
+    <!-- ExcelJS para mantener formatos -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script> -->
+
+
+</head>
+
+<body>
+    <!-- 🔒 PANTALLA DE LOGIN -->
+    <div id="login-section" class="login-screen">
+        <div class="login-container">
+            <div class="login-brand">
+                <div class="logo">
+                    <i class="fas fa-network-wired"></i>
+                </div>
+                <h1>Nomitron</h1>
+                <p>Sistema Profesional de Gestión</p>
+            </div>
+
+            <form id="login-form" class="login-form">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" name="usuario" placeholder="Usuario" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="password" placeholder="Contraseña" required>
+                    <button type="button" class="toggle-password">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <button type="submit" class="btn-login">
+                    <span>Iniciar Sesión</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <p>© 2025 Nomitron Systems</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌙 INTERRUPTOR TEMA 
+    <div class="theme-toggle" id="theme-toggle">
+        <i class="fas fa-moon"></i>
+    </div> -->
+
+    <!-- 📱 APP PRINCIPAL -->
+    <div id="app" class="app">
+        <!-- BARRA SUPERIOR -->
+        <header class="top-bar" style="display:none;">
+            <button class="menu-toggle" onclick="toggleMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <div class="app-title">
+                <i class="fas fa-network-wired"></i>
+                <span>Nomitron</span>
+            </div>
+
+            <div class="user-menu">
+                <div class="theme-toggle" id="theme-toggle" title="Cambiar modo">
+                    <i class="fas fa-moon"></i>
+                </div>
+            </div>
+            </header>
+
+            <nav id="side-menu" class="side-menu">
+                <div class="menu-header">
+                    <div class="menu-brand">
+                        <div class="brand-icon">
+                            <i class="fas fa-network-wired"></i>
+                        </div>
+                        <span>Nomitron</span>
+                    </div>
+                    <button class="close-menu" onclick="toggleMenu()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="user-info" style="margin: 20px; display: flex; align-items: center; gap: 12px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" class="avatar" style="width: 40px; height: 40px;">
+    
+                <div style="display: flex; flex-direction: column; justify-content: center; line-height: 1.2;">
+                    <span id="user-name" style="
+                        font-size: .75rem; 
+                        font-weight: bold; 
+                        color: white; 
+                        display: block; 
+                        max-width: 120px; 
+                        white-space: normal; 
+                        line-height: 1.2;
+                        text-align: center;
+                    ">Usuario
+                    </span>
+                    <span id="user-role" style="
+                        font-size: .65rem; 
+                        color: #60a5fa; 
+                        text-transform: uppercase; 
+                        text-align: center;
+                    ">Rol
+                    </span>
+                </div>
+            </div>
+
+                <div style="padding: 0 20px 20px 20px;">
+                    <button class="logout-btn" onclick="logout()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Cerrar Sesión</span>
+                    </button>
+                </div>
+
+            <div class="menu-items">
+                <div class="menu-group-label">Operación</div>
+                <button onclick="showSectionAndCloseMenu('home')" class="menu-item">
+                    <i class="fas fa-th-large"></i>
+                    <span>Inicio / Dashboard</span>
+                </button>
+                <button onclick="showSectionAndCloseMenu('add')" class="menu-item">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Agregar Folio</span>
+                </button>
+                <button onclick="showSectionAndCloseMenu('filter')" class="menu-item">
+                    <i class="fas fa-filter"></i>
+                    <span>Filtrar Datos</span>
+                </button>
+                <button onclick="showSectionAndCloseMenu('planos')" class="menu-item">
+                    <i class="fas fa-drafting-compass"></i>
+                    <span>Visualizar Planos</span>
+                </button>
+
+                <div class="menu-group-label">Nóminas y Análisis</div>
+                <button onclick="showSectionAndCloseMenu('summary')" class="menu-item">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Resumen Técnicos</span>
+                </button>
+                <button onclick="showSectionAndCloseMenu('nomina')" class="menu-item">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>Nómina Técnico</span>
+                </button>
+                <button onclick="showSectionAndCloseMenu('supervisor')" class="menu-item">
+                    <i class="fas fa-user-tie"></i>
+                    <span>Nómina Supervisor</span>
+                </button>
+                <button onclick="showSectionAndCloseMenu('acumulado')" class="menu-item">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Acumulado</span>
+                </button>
+                <button onclick="showSectionAndCloseMenu('total-nominas')" class="menu-item">
+                    <i class="fas fa-calculator"></i>
+                    <span>Total General</span>
+                </button>
+
+                <div class="menu-group-label">Herramientas Masivas</div>
+                <button onclick="showSectionAndCloseMenu('carga-ffth')" class="menu-item">
+                    <i class="fas fa-upload"></i>
+                    <span>Carga FFTH</span>
+                </button>
+                <button onclick="showSectionAndCloseMenu('carga-cobre')" class="menu-item">
+                    <i class="fas fa-upload"></i>
+                    <span>Carga COBRE</span>
+                </button>
+
+                <div class="menu-group-label">Administración</div>
+                <button onclick="showSectionAndCloseMenu('base')" class="menu-item">
+                    <i class="fas fa-database"></i>
+                    <span>Base de Folios</span>
+                </button>
+                <button onclick="showSectionAndCloseMenu('users')" class="menu-item">
+                    <i class="fas fa-users-cog"></i>
+                    <span>Gestión Usuarios</span>
+                </button>
+                <button onclick="showSectionAndCloseMenu('precios')" class="menu-item">
+                    <i class="fas fa-tags"></i>
+                    <span>Editar Precios</span>
+                </button>
+                <button onclick="showSectionAndCloseMenu('configuracion')" class="menu-item" id="btn-config">
+                    <i class="fas fa-cog"></i>
+                    <span>Configuración</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- 📊 CONTENIDO PRINCIPAL -->
+        <main class="main-content" style="display:none;">
+            <!-- INICIO -->
+            <!-- INICIO -->
+            <section id="home" class="content-section active">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                    <div>
+                        <h1 style="margin: 0;"> Dashboard Principal</h1>
+                        <p style="margin: 0;">Bienvenido de nuevo. Aquí tienes un resumen de la operación.</p>
+                    </div>
+                    <div class="header-date" id="current-date">
+                    </div>
+                </div>
+
+                <div class="stats-grid-modern">
+                    <div class="stat-box blue">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-file-invoice"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="label">Total Folios</span>
+                            <h2 id="total-folios">0</h2>
+                            <span class="trend"><i class="fas fa-arrow-up"></i> Histórico total</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-box orange">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="label">Técnicos Activos</span>
+                            <h2 id="total-tecnicos">0</h2>
+                            <span class="trend">Personal en campo</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-box green">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="label">Folios Hoy</span>
+                            <h2 id="folios-hoy">0</h2>
+                            <span class="trend">Actualización real</span>
+                        </div>
+                    </div>
+
+                    <!-- <div class="stat-box purple">
+                        <div class="stat-icon-wrapper">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="label">Mi Rol</span>
+                            <h2 id="user-role" style="font-size: 1.2rem; text-transform: uppercase;">-</h2>
+                            <span class="trend">Acceso autorizado</span>
+                        </div>
+                    </div> -->
+                </div>
+
+                <div class="activity-container">
+                    <div class="activity-header">
+                        <h3><i class="fas fa-bolt"></i> Últimos Movimientos</h3>
+                        <button class="btn-view-all" onclick="showSection('filter')">Ver todo</button>
+                    </div>
+                    <div id="recent-folios" class="modern-activity-list">
+                        <div class="loading-spinner">Cargando actividad...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección Agregar Folio -->
+            <!-- Sección Agregar Folio -->
+            <section id="add" class="section">
+                <!--<div class="card"> -->
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-plus-circle"></i>
+                            Agregar Folio
+                        </h2>
+                        <p>Seleccione el modo de ingreso de datos</p>
+                    </div>
+
+                    <div class="card-body">
+                        <!-- Modo de ingreso + Botón Folio Pendiente -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Modo de ingreso:</label>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-secondary"
+                                        onclick="cambiarModoIngreso('manual')" id="btn-modo-manual">
+                                        <i class="fas fa-pen"></i> Manual
+                                    </button>
+                                    <button type="button" class="btn btn-secondary"
+                                        onclick="cambiarModoIngreso('automatico')" id="btn-modo-automatico">
+                                        <i class="fas fa-robot"></i> Automático
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label style="visibility: hidden;">Acción</label>
+                                <button type="button" class="btn btn-secondary" onclick="abrirModalFolioPendiente()">
+                                    <i class="fas fa-clock"></i> Folio Pendiente de Liquidar
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Formulario Manual -->
+                        <form id="folio-form" style="display:block;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Tipo:</label>
+                                    <select name="tipo" class="form-control" required>
+                                        <option value="">Seleccionar</option>
+                                        <option value="FIBRA">FIBRA</option>
+                                        <option value="COBRE">COBRE</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Cope:</label>
+                                    <select name="cope" class="form-control" required>
+                                        <option value="">Seleccionar</option>
+                                        <option value="TROJES">TROJES</option>
+                                        <option value="AGU">AGU</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Teléfono (10 dígitos):</label>
+                                    <input type="text" name="telefono" class="form-control" maxlength="10"
+                                        pattern="\d{10}" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Folio/OS (9 dígitos):</label>
+                                    <input type="text" name="folio" class="form-control" maxlength="9" pattern="\d{9}"
+                                        required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Tarea:</label>
+                                    <input type="text" name="tarea" class="form-control" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Distrito (9 dígitos):</label>
+                                    <input type="text" name="distrito" class="form-control" maxlength="9"
+                                        pattern="[A-Z0-9]{1,9}" required
+                                        title="Máximo 9 caracteres entre letras y números">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group tech-only-field">
+                                    <label>Técnico:</label>
+                                    <select name="tecnico" class="form-control" required>
+                                        <option value="">Seleccionar</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Fecha y Hora:</label>
+                                    <input type="datetime-local" name="fecha" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group campo-normal">
+                                    <label>Plantilla:</label>
+                                    <select name="plantilla" class="form-control" required>
+                                        <option value="OK">OK</option>
+                                        <option value="X">X</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group campo-normal">
+                                    <label>Encuesta:</label>
+                                    <select name="encuesta" class="form-control" required>
+                                        <option value="OK">OK</option>
+                                        <option value="X">X</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group campo-normal">
+                                    <label>Instalación:</label>
+                                    <select name="instalacion" class="form-control" required>
+                                        <option value="AEREA">AEREA</option>
+                                        <option value="SUBTERRANEA">SUBTERRANEA</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group campo-normal">
+                                    <label>Metraje (5-250 mts):</label>
+                                    <input type="number" name="metraje" class="form-control" min="5" max="250" step="1"
+                                        required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group campo-normal">
+                                    <label>Ventanas:</label>
+                                    <input type="number" name="ventanas" class="form-control" min="0" step="1"
+                                        value="0">
+                                </div>
+
+                                <div class="form-group campo-normal">
+                                    <label>Radiales:</label>
+                                    <input type="number" name="radiales" class="form-control" min="0" step="1"
+                                        value="0">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Folio pendiente de liquidar:</label>
+                                    <select name="pendiente" class="form-control" required>
+                                        <option value="no">No</option>
+                                        <option value="si">Sí</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group campo-normal">
+                                    <label>Alfanumérico (12 dígitos):</label>
+                                    <input type="text" name="alfanumerico" class="form-control" maxlength="12"
+                                        pattern="[A-Z0-9]{1,12}" required
+                                        title="Máximo 12 caracteres entre letras y números">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group campo-normal">
+                                    <label>Comentarios:</label>
+                                    <textarea name="comentarios" class="form-control" rows="3"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Guardar Folio
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Formulario Automático -->
+                        <div id="modo-automatico" style="display:none;">
+                            <div class="form-group">
+                                <label>Pegue la plantilla:</label>
+                                <textarea id="plantilla-whatsapp" class="form-control" rows="22"
+                                    placeholder="Pegue aquí la plantilla completa..."
+                                    style="font-family:monospace;"></textarea>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-primary" onclick="procesarPlantilla()">
+                                    <i class="fas fa-cogs"></i> Procesar Plantilla
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="cambiarModoIngreso('manual')">
+                                    <i class="fas fa-arrow-left"></i> Volver a Manual
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                <!-- </div> -->
+            </section>
+
+            <!-- Sección Base de Folios -->
+            <!-- Sección Base de Folios -->
+            <section id="base" class="section">
+                <!--<div class="card"> -->
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-database"></i>
+                            Base de Folios
+                        </h2>
+                        <p>Gestión y edición de plantillas y encuestas por técnico</p>
+                    </div>
+
+                    <div class="card-body">
+                        <form id="base-filter-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Técnico:</label>
+                                    <select name="base-tecnico" id="base-tecnico" class="form-control" required>
+                                        <option value="">Seleccionar técnico</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Fecha Desde:</label>
+                                    <input type="date" name="base-desde" id="base-desde" class="form-control" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Fecha Hasta:</label>
+                                    <input type="date" name="base-hasta" id="base-hasta" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-filter"></i> Aplicar Filtro
+                                </button>
+                                <button type="button" onclick="clearBaseFilter()" class="btn btn-secondary">
+                                    <i class="fas fa-broom"></i> Limpiar
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="edit-controls card mt-3" id="base-edit-controls" style="display: none;">
+                            <div class="card-header">
+                                <h4 class="card-title">
+                                    <i class="fas fa-edit"></i>
+                                    Editar Folio Seleccionado
+                                </h4>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Plantilla:</label>
+                                        <select id="edit-plantilla" class="form-control">
+                                            <option value="OK">OK</option>
+                                            <option value="X">X</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Encuesta:</label>
+                                        <select id="edit-encuesta" class="form-control">
+                                            <option value="OK">OK</option>
+                                            <option value="X">X</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" onclick="saveFolioChanges()" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Guardar Cambios
+                                    </button>
+                                    <button type="button" onclick="cancelEdit()" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive mt-3">
+                            <div id="base-results" class="results-table">
+                                <p>Selecciona un técnico y rango de fechas para ver los folios</p>
+                            </div>
+                        </div>
+                    </div>
+               <!-- </div> -->
+            </section>
+
+            <!-- Sección Filtrar Datos -->
+            <!-- Sección Filtrar Datos -->
+            <section id="filter" class="section">
+                <!-- <div class="card"> -->
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-filter"></i>
+                            Filtrar Datos
+                        </h2>
+                        <p>Filtre los folios según sus criterios de búsqueda</p>
+                    </div>
+
+                    <div class="card-body">
+                        <form id="filter-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Técnico:</label>
+                                    <select name="filtro-tecnico" class="form-control">
+                                        <option value="">Todos</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Fecha Desde:</label>
+                                    <input type="date" name="fecha-desde" class="form-control">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Fecha Hasta:</label>
+                                    <input type="date" name="fecha-hasta" class="form-control">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Folio/OS:</label>
+                                    <input type="text" name="filtro-folio" class="form-control"
+                                        placeholder="Buscar por folio">
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Aplicar Filtro
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="table-responsive mt-3">
+                            <div id="filter-results" class="results-table"></div>
+                        </div>
+                    </div>
+                <!-- </div> -->
+            </section>
+
+            <!-- Sección Resumen Técnicos -->
+            <!-- Sección Resumen Técnicos -->
+            <section id="summary" class="section">
+                <!-- <div class="card"> -->
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-chart-bar"></i>
+                            Resumen por Técnico
+                        </h2>
+                        <p>Resumen de folios liquidados por técnico</p>
+                    </div>
+
+                    <div class="card-body">
+                        <form id="summary-filter">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Desde:</label>
+                                    <input type="date" name="summary-desde" class="form-control" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Hasta:</label>
+                                    <input type="date" name="summary-hasta" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-chart-line"></i> Generar Resumen
+                                </button>
+                                <!-- <button type="button" onclick="printSummary()" class="btn btn-secondary">
+                        <i class="fas fa-print"></i> Imprimir Resumen
+                    </button> -->
+                            </div>
+                        </form>
+
+                        <div class="chart-container mt-3">
+                            <canvas id="summary-chart"></canvas>
+                        </div>
+
+                        <div class="table-responsive mt-3">
+                            <div id="summary-table" class="results-table"></div>
+                        </div>
+                    </div>
+                <!-- </div> -->
+            </section>
+
+            <!-- Sección Carga FFTH -->
+            <section id="carga-ffth" class="section">
+                <!-- <div class="card"> -->
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-upload"></i>
+                            Carga FFTH
+                        </h2>
+                        <p>Exportar datos FFTH a Excel</p>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="form-container">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Fecha Desde:</label>
+                                    <input type="date" id="ffth-desde" class="form-control">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Fecha Hasta:</label>
+                                    <input type="date" id="ffth-hasta" class="form-control">
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button onclick="applyFFTHFilter()" class="btn btn-primary">
+                                    <i class="fas fa-filter"></i> Aplicar Filtro
+                                </button>
+                                <button onclick="clearFFTHFilter()" class="btn btn-secondary">
+                                    <i class="fas fa-broom"></i> Limpiar Filtro
+                                </button>
+                                <button onclick="exportToExcel('ffth')" class="btn btn-success">
+                                    <i class="fas fa-file-excel"></i> Exportar a Excel
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive mt-3">
+                            <div id="ffth-table" class="results-table"></div>
+                        </div>
+                    </div>
+                <!-- </div> -->
+            </section>
+
+            <!-- Sección Carga COBRE -->
+            <!-- Sección Carga COBRE -->
+            <section id="carga-cobre" class="section">
+                <!-- <div class="card"> -->
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-upload"></i>
+                            Carga COBRE
+                        </h2>
+                        <p>Exportar datos COBRE a Excel</p>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="form-container">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Fecha Desde:</label>
+                                    <input type="date" id="cobre-desde" class="form-control">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Fecha Hasta:</label>
+                                    <input type="date" id="cobre-hasta" class="form-control">
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button onclick="applyCobreFilter()" class="btn btn-primary">
+                                    <i class="fas fa-filter"></i> Aplicar Filtro
+                                </button>
+                                <button onclick="clearCobreFilter()" class="btn btn-secondary">
+                                    <i class="fas fa-broom"></i> Limpiar Filtro
+                                </button>
+                                <button onclick="exportToExcel('cobre')" class="btn btn-success">
+                                    <i class="fas fa-file-excel"></i> Exportar a Excel
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive mt-3">
+                            <div id="cobre-table" class="results-table"></div>
+                        </div>
+                    </div>
+                <!-- </div> -->
+            </section>
+
+            <!-- Sección Nómina Técnico -->
+            <section id="nomina" class="section">
+                <!-- <div class="card"> -->
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-user-hard-hat"></i>
+                            Recibo de Pago a Técnico
+                        </h2>
+                        <p>Generar recibo de nómina para técnico</p>
+                    </div>
+
+                    <div class="card-body">
+                        <!-- CAMBIA EL ID DEL FORMULARIO -->
+                        <form id="nomina-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Técnico:</label>
+                                    <select name="nomina-tecnico" class="form-control" required>
+                                        <option value="">Seleccionar</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Fecha Desde:</label>
+                                    <input type="date" name="nomina-desde" class="form-control" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Fecha Hasta:</label>
+                                    <input type="date" name="nomina-hasta" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-file-invoice"></i> Generar Recibo
+                                </button>
+                                <button type="button" onclick="printNomina()" class="btn btn-secondary">
+                                    <i class="fas fa-print"></i> Imprimir Recibo
+                                </button>
+                                <!-- <button type="button" onclick="exportarNominaTecnicoExcel()" class="btn btn-success">
+                        <i class="fas fa-file-excel"></i> Exportar a Excel
+                    </button> -->
+                            </div>
+                        </form>
+
+                        <div id="nomina-receipt" class="receipt mt-3"></div>
+                    </div>
+                <!-- </div> -->
+            </section>
+
+            <!-- Sección Nómina Supervisor -->
+            <section id="supervisor" class="section">
+                <!-- <div class="card"> -->
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-user-tie"></i>
+                            Recibo de Pago a Supervisor
+                        </h2>
+                        <p>Generar recibo de nómina para supervisor</p>
+                    </div>
+
+                    <div class="card-body">
+                        <!-- Asegúrate que este formulario tenga id="supervisor-form" -->
+                        <form id="supervisor-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Supervisor:</label>
+                                    <select name="supervisor-nombre" class="form-control" required>
+                                        <option value="">Seleccionar</option>
+                                        <!-- Las opciones se llenarán con JavaScript -->
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Fecha Desde:</label>
+                                    <input type="date" name="supervisor-desde" class="form-control" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Fecha Hasta:</label>
+                                    <input type="date" name="supervisor-hasta" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-file-invoice"></i> Generar Recibo
+                                </button>
+                                <button type="button" onclick="printSupervisor()" class="btn btn-secondary">
+                                    <i class="fas fa-print"></i> Imprimir Recibo
+                                </button>
+                                <!-- <button type="button" onclick="exportarNominaSupervisorExcel()" class="btn btn-success">
+                        <i class="fas fa-file-excel"></i> Exportar a Excel
+                    </button> -->
+                            </div>
+                        </form>
+
+                        <!-- Este div recibirá el recibo generado -->
+                        <div id="supervisor-receipt" class="receipt mt-3"></div>
+                    </div>
+                <!-- </div> -->
+            </section>
+
+            <!-- Sección Acumulado -->
+            <section id="acumulado" class="section">
+                <!-- <div class="card">  -->
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-layer-group"></i>
+                            Acumulado de Folios por Técnico
+                        </h2>
+                        <p>Acumulado de folios realizados por técnico</p>
+                    </div>
+
+                    <div class="card-body">
+                        <form id="acumulado-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Desde:</label>
+                                    <input type="date" name="acumulado-desde" class="form-control" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Hasta:</label>
+                                    <input type="date" name="acumulado-hasta" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-chart-bar"></i> Generar Acumulado
+                                </button>
+                                <button type="button" onclick="printAcumulado()" class="btn btn-secondary">
+                                    <i class="fas fa-print"></i> Imprimir Acumulado
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="table-responsive mt-3">
+                            <div id="acumulado-table" class="results-table"></div>
+                        </div>
+
+                        <div class="summary-cards mt-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card stat-card">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-chart-line"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <h3>Total Folios</h3>
+                                            <p id="total-acumulado">0</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card stat-card">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <h3>Técnicos Activos</h3>
+                                            <p id="tecnicos-acumulado">0</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <!-- </div> -->
+            </section>
+
+            <!-- Sección Visualizar Planos -->
+            <section id="planos" class="section">
+                <!-- <div class="card"> -->
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-drafting-compass"></i>
+                            Visualizador de Planos
+                        </h2>
+                        <p>Visualice y descargue los planos disponibles</p>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="form-container">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Seleccionar Carpeta:</label>
+                                    <select id="carpeta-select" class="form-control"
+                                        onchange="cargarArchivosCarpeta(this.value)">
+                                        <option value="">Seleccionar carpeta</option>
+                                        <option value="planos">Planos Principales</option>
+                                        <option value="archivos">Archivos Técnicos</option>
+                                        <option value="documentos">Documentos</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Buscar archivo:</label>
+                                    <input type="text" id="buscar-archivo" class="form-control"
+                                        placeholder="Buscar por nombre..." onkeyup="filtrarArchivos()">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="visor-planos" class="mt-3">
+                            <!-- <div class="row"> -->
+                                <div class="col-md-4">
+                                    <!-- <div class="card"> -->
+                                        <div class="card-header">
+                                            <h4 class="card-title">
+                                                <i class="fas fa-folder"></i>
+                                                Archivos Disponibles
+                                            </h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="lista-archivos" class="file-list"
+                                                style="max-height: 400px; overflow-y: auto;">
+                                                <p>Selecciona una carpeta para ver los archivos</p>
+                                            </div>
+                                        </div>
+                                    <!-- </div> -->
+                                </div>
+
+                                <div class="col-md-8">
+                                    <!-- <div class="card"> -->
+                                        <div class="card-header">
+                                            <h4 class="card-title">
+                                                <i class="fas fa-eye"></i>
+                                                Vista Previa
+                                            </h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="preview-container" class="preview-area"
+                                                style="min-height: 400px; display: flex; align-items: center; justify-content: center;">
+                                                <div class="text-center">
+                                                    <i class="fas fa-file-alt fa-4x"
+                                                        style="color: var(--text-light); margin-bottom: 1rem;"></i>
+                                                    <p>Selecciona un archivo para previsualizarlo</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <!-- </div> -->
+                                </div>
+                            <!-- </div> -->
+                        </div>
+
+                        <!-- Agrega esto en la sección de botones de la sección Planos -->
+                        <div class="planos-actions mt-3">
+                            <div class="btn-group">
+                                <button onclick="descargarArchivoActual()" disabled id="btn-descargar"
+                                    class="btn btn-secondary">
+                                    <i class="fas fa-download"></i> Descargar Archivo
+                                </button>
+                                <button onclick="abrirArchivoNuevaPestana()" disabled id="btn-abrir"
+                                    class="btn btn-secondary">
+                                    <i class="fas fa-external-link-alt"></i> Abrir en Nueva Pestaña
+                                </button>
+                                <!-- BOTÓN PARA ADMINISTRADORES - SOLO VISIBLE PARA ADMINS -->
+                                <button onclick="mostrarModalSubirArchivo()" id="btn-subir-archivo"
+                                    class="btn btn-success" style="display: none;">
+                                    <i class="fas fa-cloud-upload-alt"></i> Subir Nuevo Archivo
+                                </button>
+                                <button onclick="actualizarListaArchivos()" class="btn btn-primary">
+                                    <i class="fas fa-sync-alt"></i> Actualizar Lista
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Modal para subir archivos (solo para administradores) -->
+                        <div id="modal-subir-archivo" class="modal" style="display:none;">
+                            <div class="modal-content" style="max-width: 500px;">
+                                <span class="close-modal" onclick="cerrarModalSubirArchivo()">&times;</span>
+
+                                <h3 class="card-title">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    Subir Archivo a GitHub
+                                </h3>
+
+                                <form id="form-subir-archivo">
+                                    <div class="form-group">
+                                        <label>Seleccionar carpeta:</label>
+                                        <select id="carpeta-destino" class="form-control" required>
+                                            <option value="">Seleccionar carpeta destino</option>
+                                            <option value="planos">📁 Planos Principales</option>
+                                            <option value="documentos">📁 Documentos</option>
+                                            <option value="tecnicos">📁 Archivos Técnicos</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Nombre del archivo (opcional):</label>
+                                        <input type="text" id="nombre-archivo" class="form-control"
+                                            placeholder="Dejar en blanco para usar nombre original">
+                                        <small class="form-text text-muted">Si se deja vacío, se usará el nombre
+                                            original del archivo</small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Seleccionar archivo:</label>
+                                        <input type="file" id="input-archivo" class="form-control"
+                                            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,.zip,.dwg" required>
+                                        <small class="form-text text-muted">Formatos permitidos: PDF, JPG, PNG, DOC,
+                                            XLS, ZIP, DWG (Máx. 25MB)</small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Descripción (opcional):</label>
+                                        <textarea id="descripcion-archivo" class="form-control" rows="2"
+                                            placeholder="Breve descripción del archivo..."></textarea>
+                                    </div>
+
+                                    <div class="progress-container" style="display: none; margin: 1rem 0;">
+                                        <div class="progress">
+                                            <div class="progress-bar" role="progressbar" style="width: 0%;"
+                                                aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                                        </div>
+                                        <div class="progress-text text-center mt-1"></div>
+                                    </div>
+
+                                    <div class="form-actions">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-upload"></i> Subir a GitHub
+                                        </button>
+                                        <button type="button" onclick="cerrarModalSubirArchivo()"
+                                            class="btn btn-secondary">
+                                            <i class="fas fa-times"></i> Cancelar
+                                        </button>
+                                    </div>
+
+                                    <div id="mensaje-subida" class="alert mt-3" style="display: none;"></div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="file-info card mt-3">
+                            <div class="card-header">
+                                <h5 class="card-title">
+                                    <i class="fas fa-info-circle"></i>
+                                    Información del Archivo
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="file-info-content">
+                                    <p>No hay archivo seleccionado</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <!-- </div> -->
+            </section>
+
+            <!-- Sección Usuarios -->
+            <section id="users" class="section">
+                <!-- <div class="card"> -->
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-users-cog"></i>
+                            Gestión de Usuarios
+                        </h2>
+                        <p class="subtitle">Administre los usuarios del sistema</p>
+                    </div>
+
+                    <div class="card-body">
+                        <form id="user-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Usuario (login):</label>
+                                    <input type="text" name="user-usuario" class="form-control" required
+                                        placeholder="ej: tecnico1">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Nombre Completo:</label>
+                                    <input type="text" name="user-name" class="form-control" required
+                                        placeholder="ej: Juan Pérez">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Rol:</label>
+                                    <select name="user-role" class="form-control" required>
+                                        <option value="tecnico">Técnico</option>
+                                        <option value="supervisor">Supervisor</option>
+                                        <option value="gerente">Gerente</option>
+                                        <option value="administrativo">Administrativo</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Contraseña:</label>
+                                    <input type="password" name="user-password" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-user-plus"></i> Agregar Usuario
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="table-responsive mt-3">
+                            <div id="users-list" class="results-table"></div>
+                        </div>
+                    </div>
+                <!-- </div> -->
+            </section>
+
+            <!-- Sección Total General Nóminas -->
+            <section id="total-nominas" class="content-section" style="display: none;">
+            <div class="section-header">
+                <h2><i class="fas fa-calculator"></i> TOTAL GENERAL NÓMINAS</h2>
+                <p>Consulta y calcula el total general de nóminas por período</p>
+            </div>
+            
+            <div class="form-container">
+                <form id="total-nominas-form" class="total-nominas-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label><i class="fas fa-calendar-day"></i> Fecha Desde</label>
+                            <input type="date" name="total-desde" id="total-desde" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-calendar-check"></i> Fecha Hasta</label>
+                            <input type="date" name="total-hasta" id="total-hasta" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-calculator"></i> Calcular Total
+                        </button>
+                        </div>
+                </form>
+            </div>
+            
+            <div id="gastos-oficina-container">
+                </div>
+            
+            <div id="total-nominas-results">
+                </div>
+        </section>
+
+    <!-- Sección Configuración de Precios -->
+    <section id="precios" class="section">
+        <!-- <div class="card shadow-lg"> -->
+            <div class="card-header bg-gradient">
+                <h2 class="card-title">
+                    <i class="fas fa-tags"></i>
+                    Configuración de Precios
+                </h2>
+                <p class="subtitle">Ajusta los valores base para los cálculos de nómina</p>
+            </div>
+
+            <div class="card-body">
+                <form id="precios-form">
+                    <div class="price-category-group">
+                        <h3 class="category-title"><i class="fas fa-microchip"></i> Fibra Óptica</h3>
+                        <div class="precios-grid-modern">
+                            <div class="price-input-card">
+                                <label>Aérea</label>
+                                <div class="input-with-symbol">
+                                    <span>$</span>
+                                    <input type="number" name="fibra_aerea" class="form-control" value="330" step="10">
+                                </div>
+                            </div>
+                            <div class="price-input-card">
+                                <label>Subterránea</label>
+                                <div class="input-with-symbol">
+                                    <span>$</span>
+                                    <input type="number" name="fibra_sub" class="form-control" value="350" step="10">
+                                </div>
+                            </div>
+                            <div class="price-input-card specialty">
+                                <label>Aérea (10+)</label>
+                                <div class="input-with-symbol">
+                                    <span>$</span>
+                                    <input type="number" name="fibra_aerea_10" class="form-control" value="350"
+                                        step="10">
+                                </div>
+                            </div>
+                            <div class="price-input-card specialty">
+                                <label>Subterránea (10+)</label>
+                                <div class="input-with-symbol">
+                                    <span>$</span>
+                                    <input type="number" name="fibra_sub_10" class="form-control" value="370" step="10">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="price-category-group">
+                        <h3 class="category-title"><i class="fas fa-ethernet"></i> Cobre</h3>
+                        <div class="precios-grid-modern">
+                            <div class="price-input-card">
+                                <label>Aérea</label>
+                                <div class="input-with-symbol">
+                                    <span>$</span>
+                                    <input type="number" name="cobre_aerea" class="form-control" value="300" step="10">
+                                </div>
+                            </div>
+                            <div class="price-input-card">
+                                <label>Subterránea</label>
+                                <div class="input-with-symbol">
+                                    <span>$</span>
+                                    <input type="number" name="cobre_sub" class="form-control" value="320" step="10">
+                                </div>
+                            </div>
+                            <div class="price-input-card specialty">
+                                <label>Aérea (10+)</label>
+                                <div class="input-with-symbol">
+                                    <span>$</span>
+                                    <input type="number" name="cobre_aerea_10" class="form-control" value="320"
+                                        step="10">
+                                </div>
+                            </div>
+                            <div class="price-input-card specialty">
+                                <label>Subterránea (10+)</label>
+                                <div class="input-with-symbol">
+                                    <span>$</span>
+                                    <input type="number" name="cobre_sub_10" class="form-control" value="340" step="10">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions-modern">
+                        <button type="submit" class="btn-save-prices">
+                            <i class="fas fa-save"></i> Actualizar Tarifas
+                        </button>
+                    </div>
+                </form>
+            </div>
+        <!-- </div> -->
+    </section>
+
+    <!-- Sección Configuración de Precios -->
+    <section id="configuracion" class="content-section" style="display:none;">
+    <!-- <div class="card"> -->
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fas fa-cogs"></i>
+                <span>Panel de Control de Accesos</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table-custom" id="tabla-permisos">
+                    <thead>
+                        <tr>
+                            <th>Módulo / Ventana</th>
+                            <th>Técnico</th>
+                            <th>Sup.</th>
+                            <th>Gerente</th>
+                            <th>Admin.</th>
+                        </tr>
+                    </thead>
+                    <tbody id="body-permisos">
+                        </tbody>
+                </table>
+            </div>
+            <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                <button class="btn-save" onclick="guardarPermisosFirebase()" style="background: #10b981; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                    <i class="fas fa-save"></i> GUARDAR CAMBIOS
+                </button>
+            </div>
+        </div>
+    <!-- </div> -->
+</section>
+
+    <!-- Modal de Edición de Folio -->
+    <div id="edit-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeEditModal()">&times;</span>
+
+            <h2 class="card-title">
+                <i class="fas fa-edit"></i>
+                Editar Folio
+            </h2>
+
+            <form id="edit-folio-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tipo:</label>
+                        <select name="tipo" class="form-control" required>
+                            <option value="FIBRA">FIBRA</option>
+                            <option value="COBRE">COBRE</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Cope:</label>
+                        <select name="cope" class="form-control" required>
+                            <option value="TROJES">TROJES</option>
+                            <option value="AGU">AGU</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Teléfono (10 dígitos):</label>
+                        <input type="text" name="telefono" class="form-control" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Folio/OS (9 dígitos):</label>
+                        <input type="text" name="folio" class="form-control" maxlength="9" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tarea:</label>
+                        <input type="text" name="tarea" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Distrito:</label>
+                        <input type="text" name="distrito" class="form-control" maxlength="9" style="text-transform: uppercase;">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group tech-only-field">
+                        <label>Técnico:</label>
+                        <select name="tecnico" class="form-control" required>
+                            <option value="">Seleccionar</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fecha y Hora:</label>
+                        <input type="datetime-local" name="fecha" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Plantilla:</label>
+                        <select name="plantilla" class="form-control" required>
+                            <option value="OK">OK</option>
+                            <option value="X">X</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Encuesta:</label>
+                        <select name="encuesta" class="form-control" required>
+                            <option value="OK">OK</option>
+                            <option value="X">X</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Instalación:</label>
+                        <select name="instalacion" class="form-control" required>
+                            <option value="AEREA">AEREA</option>
+                            <option value="SUBTERRANEA">SUBTERRANEA</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Metraje (5-250 mts):</label>
+                        <input type="number" name="metraje" class="form-control" min="5" max="250" step="1" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Ventanas:</label>
+                        <input type="number" name="ventanas" class="form-control" min="0" step="1" value="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Radiales:</label>
+                        <input type="number" name="radiales" class="form-control" min="0" step="1" value="0">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Folio pendiente de liquidar:</label>
+                        <select name="pendiente" class="form-control" required>
+                            <option value="no">No</option>
+                            <option value="si">Sí</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row pendiente-campos" style="display:none;">
+                    <div class="form-group">
+                        <label>Teléfono pendiente (9 dígitos):</label>
+                        <input type="text" name="telefono_pendiente" class="form-control" maxlength="9" pattern="\d{9}">
+                    </div>
+                </div>
+
+                <div class="form-row pendiente-campos" style="display:none;">
+                    <div class="form-group">
+                        <label>Comentarios pendiente:</label>
+                        <textarea name="comentarios_pendiente" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group>
+                        <label>Alfanumérico:</label>
+                        <input type="text" name="alfanumerico" maxlength="12" style="text-transform: uppercase;">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Comentarios:</label>
+                        <textarea name="comentarios" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                    <button type="button" onclick="closeEditModal()" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    </main>
+    <footer>
+        <p>&copy; 2025 Sistema de Gestión de Folios y Nóminas. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="firebase-config.js"></script>
+    <script src="script.js"></script>
+    <script src="planos.js"></script>
+    <script src="pwa.js"></script>
+
+    <div class="nav-overlay" onclick="toggleMenu()"></div>
+
+</body>
+
+</html>
